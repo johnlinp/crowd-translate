@@ -11,70 +11,38 @@
         <% include ../modules/nav.ejs %>
 
         <div class="container">
-            <div class="col-md-6 col-md-offset-3">
-                <div><h2>鼓勵才有辦法讓人們盡全力</h2></div>
-                <div class="ct-image">
-                    <img src="http://img-9gag-fun.9cache.com/photo/apvVYWD_460s.jpg"></img>
-                    <div class="ct-blur-overlay" style="clip: rect(320px, 440px, 460px, 20px)">
-                        <img src="http://img-9gag-fun.9cache.com/photo/apvVYWD_460s.jpg"></img>
+            <% for (var i = 0; i < translations.length; ++i) { %>
+                <% var translation = translations[i]; %>
+                <div class="col-md-6 col-md-offset-3">
+                    <div><h2><%= translation.title %></h2></div>
+                    <div class="ct-image">
+                        <img src="<%= translation.post.imageUrl %>"></img>
+                        <% for (var j = 0; j < translation.texts.length; ++j) { %>
+                            <% var text = translation.texts[j]; %>
+                            <div class="ct-blur-overlay"
+                                style="clip: rect(<%= text.overlay.rect.top %>px,
+                                    <%= text.overlay.rect.right %>px,
+                                    <%= text.overlay.rect.bottom %>px,
+                                    <%= text.overlay.rect.left %>px)">
+                                <img src="<%= translation.post.imageUrl %>"></img>
+                            </div>
+                            <div class="ct-caption" style="top: <%= text.content.rect.top %>px;
+                                left: <%= text.content.rect.left %>px;
+                                width: <%= text.content.rect.width %>px;
+                                font-size: <%= text.content.fontSize %>px">
+                                <div><%= text.content.words %></div>
+                            </div>
+                        <% } %>
                     </div>
-                    <div class="ct-caption" style="top: 350px; left: 40px; width: 380px; font-size: 28px">
-                        <div>在健身房嘲笑胖子就好像在徵才博覽會嘲笑流浪漢一樣</div>
-                    </div>
+                    <p>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-default">出處</button>
+                            <button type="button" class="btn btn-default">修正</button>
+                        </div>
+                    </p>
+                    <hr>
                 </div>
-                <p>
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-default">出處</button>
-                        <button type="button" class="btn btn-default">修正</button>
-                    </div>
-                </p>
-                <hr>
-            </div>
-            <div class="col-md-6 col-md-offset-3">
-                <div><h2>哇 咬得真狠</h2></div>
-                <div style="position: relative">
-                    <img src="http://img-9gag-fun.9cache.com/photo/a2mOwwZ_460s_v2.jpg"></img>
-                    <div class="ct-block-overlay" style="top: 78px; left: 170px">
-                        <svg>
-                            <rect width="63" height="30" style="fill: rgb(240,240,240)" />
-                        </svg>
-                    </div>
-                    <div class="ct-block-overlay" style="top: 314px; left: 125px">
-                        <svg>
-                            <rect width="42" height="30" style="fill: rgb(240,240,240)" />
-                        </svg>
-                    </div>
-                    <div class="ct-block-overlay" style="top: 432px; left: 180px">
-                        <svg>
-                            <rect width="42" height="36" style="fill: rgb(240,240,240)" />
-                        </svg>
-                    </div>
-                    <div class="ct-block-overlay" style="top: 480px; left: 223px">
-                        <svg>
-                            <rect width="30" height="17" style="fill: rgb(240,240,240)" />
-                        </svg>
-                    </div>
-                    <div class="ct-dialog" style="top: 74px; left: 178px; width: 58px; font-size: 14px">
-                        <div>哇! 是柴犬耶!</div>
-                    </div>
-                    <div class="ct-dialog" style="top: 321px; left: 125px; width: 58px; font-size: 14px">
-                        <div>有夠柴</div>
-                    </div>
-                    <div class="ct-dialog" style="top: 442px; left: 186px; width: 58px; font-size: 14px">
-                        <div>真柴</div>
-                    </div>
-                    <div class="ct-dialog" style="top: 480px; left: 223px; width: 58px; font-size: 14px">
-                        <div>哇喔</div>
-                    </div>
-                </div>
-                <p>
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-default">出處</button>
-                        <button type="button" class="btn btn-default">修正</button>
-                    </div>
-                </p>
-                <hr>
-            </div>
+            <% } %>
         </div>
     </body>
 
