@@ -15,7 +15,7 @@ mongoose.connect(process.env.MONGOLAB_URI, function(err, res) {
     if (err) throw err;
 });
 
-var Post = mongoose.model('Post', new mongoose.Schema({
+var Original = mongoose.model('Original', new mongoose.Schema({
     sourceType: String,
     pageUrl: String,
     imageUrl: String,
@@ -23,7 +23,7 @@ var Post = mongoose.model('Post', new mongoose.Schema({
 }));
 
 var Translation = mongoose.model('Translation', new mongoose.Schema({
-    post: {type: mongoose.Schema.Types.ObjectId, ref: 'Post'},
+    original: {type: mongoose.Schema.Types.ObjectId, ref: 'Original'},
     language: String,
     title: String,
     texts: [
@@ -51,15 +51,21 @@ var Translation = mongoose.model('Translation', new mongoose.Schema({
 }));
 
 app.get('/', function(request, response) {
-    Translation.find().populate('post').exec(function(err, translations) {
-        if (err) throw err;
-
-        response.render('pages/index', {translations: translations});
-    });
+    response.render('pages/index');
 });
 
 app.get('/contribute', function(request, response) {
     response.render('pages/contribute');
+});
+
+app.get('/api/translations', function(request, response) {
+    Translation.find()
+            .populate('original')
+            .exec(function(err, translations) {
+        if (err) throw err;
+
+        response.json(translations);
+    });
 });
 
 app.listen(app.get('port'), function() {
