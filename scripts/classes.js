@@ -20,8 +20,8 @@ var Translation = React.createClass({
                 </div>
                 <div>
                     <div className="btn-group" role="group">
-                        <button type="button" className="btn btn-default">出處</button>
-                        <button type="button" className="btn btn-default">修正</button>
+                        <a href={this.props.translation.original.pageUrl} taget="_blank" className="btn btn-default">出處</a>
+                        <a href={'/edit/' + this.props.translation._id} className="btn btn-default">修正</a>
                     </div>
                 </div>
                 <hr></hr>
@@ -117,7 +117,7 @@ var TranslationText = React.createClass({
 var TranslationList = React.createClass({
     loadTranslationsFromServer: function() {
         var me = this;
-        $.get('/api/translations', function(translations) {
+        $.get('/api/translation/list', function(translations) {
             me.setState({translations: translations});
         }, 'json');
     },
@@ -142,4 +142,50 @@ var TranslationList = React.createClass({
     }
 });
 
+var EditImage = React.createClass({
+    render: function() {
+        if (!this.props.translation) {
+            return <div></div>;
+        }
+
+        return (
+            <div>
+                <img src={this.props.translation.original.imageUrl}></img>
+            </div>
+        );
+    }
+});
+
+var EditBox = React.createClass({
+    loadTranslationFromServer: function() {
+        var me = this;
+        var translationId = null;
+        var matches = location.pathname.match('/edit/(.*)');
+
+        if (!matches || matches.length != 2) {
+            return;
+        }
+
+        translationId = matches[1];
+        $.get('/api/translation/get/' + translationId, function(translation) {
+            me.setState({translation: translation});
+        }, 'json');
+    }, getInitialState: function() {
+        return {translation: null};
+    },
+    componentDidMount: function() {
+        this.loadTranslationFromServer();
+    },
+    render: function() {
+        return (
+            <div>
+                <div className="col-md-6 col-md-offset-1">
+                    <EditImage translation={this.state.translation}></EditImage>
+                </div>
+            </div>
+        );
+    }
+});
+
 exports.TranslationList = TranslationList;
+exports.EditBox = EditBox;

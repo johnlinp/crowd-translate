@@ -61,13 +61,27 @@ app.get('/contribute', function(request, response) {
     response.render('pages/contribute');
 });
 
-app.get('/api/translations', function(request, response) {
+app.get('/edit/:translationId', function(request, response) {
+    response.render('pages/edit');
+});
+
+app.get('/api/translation/list', function(request, response) {
     Translation.find()
             .populate('original')
             .exec(function(err, translations) {
         if (err) throw err;
 
         response.json(translations);
+    });
+});
+
+app.get('/api/translation/get/:translationId', function(request, response) {
+    Translation.findOne({_id: request.params.translationId})
+            .populate('original')
+            .exec(function(err, translation) {
+        if (err) throw err;
+
+        response.json(translation);
     });
 });
 
