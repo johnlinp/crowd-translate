@@ -1,3 +1,5 @@
+var React = require('react');
+
 var Translation = React.createClass({
     render: function() {
         var me = this;
@@ -140,8 +142,4 @@ var TranslationList = React.createClass({
     }
 });
 
-ReactDOM.render(
-    <TranslationList />,
-    document.getElementById('content')
-);
-
+exports.TranslationList = TranslationList;
