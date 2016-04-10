@@ -6,24 +6,13 @@ body {
     position: relative;
 }
 
-.ct-blur-overlay {
+.ct-text {
     position: absolute;
+}
+
+.ct-blur-overlay {
     top: 0;
     filter: blur(5px);
     -webkit-filter: blur(5px);
 }
 
-.ct-block-overlay {
-    position: absolute;
-}
-
-.ct-caption {
-    position: absolute;
-    color: white;
-    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
-}
-
-.ct-dialog {
-    position: absolute;
-    color: black;
-}

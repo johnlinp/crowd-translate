@@ -31,6 +31,8 @@ var Translation = mongoose.model('Translation', new mongoose.Schema({
             content: {
                 words: String,
                 fontSize: Number,
+                textColor: String,
+                textShadowColor: String,
                 rect: {
                     top: Number,
                     left: Number,
@@ -39,6 +41,7 @@ var Translation = mongoose.model('Translation', new mongoose.Schema({
             },
             overlay: {
                 texture: String,
+                fillColor: String,
                 rect: {
                     top: Number,
                     left: Number,

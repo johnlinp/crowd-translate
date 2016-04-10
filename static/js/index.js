@@ -29,23 +29,84 @@ var Translation = React.createClass({
 });
 
 var TranslationText = React.createClass({
+    makeBlurOverlayStyle: function() {
+        var overlay = this.props.text.overlay;
+        return {
+            clip: 'rect(' +
+                    overlay.rect.top + 'px,' +
+                    overlay.rect.right + 'px,' +
+                    overlay.rect.bottom + 'px,' +
+                    overlay.rect.left + 'px)',
+        };
+    },
+    makeBlockOverlayOutterStyle: function() {
+        var overlay = this.props.text.overlay;
+        return {
+            top: overlay.rect.top + 'px',
+            left: overlay.rect.left + 'px',
+        };
+    },
+    makeBlockOverlayInnerStyle: function() {
+        var overlay = this.props.text.overlay;
+        return {
+            fill: '#f0f0f0',
+        };
+    },
+    makeContentStyle: function() {
+        var content = this.props.text.content;
+        var style = {
+            top: content.rect.top + 'px',
+            left: content.rect.left + 'px',
+            width: content.rect.width + 'px',
+            fontSize: content.fontSize + 'px',
+            color: content.textColor,
+        };
+
+        if (content.textShadowColor) {
+            style.textShadow =
+                    '-1px 0 ' + content.textShadowColor + ',' +
+                    '0 1px ' + content.textShadowColor + ',' +
+                    '1px 0 ' + content.textShadowColor + ',' +
+                    '0 -1px ' + content.textShadowColor;
+        }
+
+        return style;
+    },
+    makeOverlayNode: function() {
+        var overlay = this.props.text.overlay;
+        if (overlay.texture == 'blur') {
+            return (
+                <div className="ct-text ct-blur-overlay" style={this.makeBlurOverlayStyle()}>
+                    <img src={this.props.imageUrl}></img>
+                </div>
+            );
+        } else if (overlay.texture == 'block') {
+            return (
+                <div className="ct-text" style={this.makeBlockOverlayOutterStyle()}>
+                    <svg>
+                        <rect
+                                width={overlay.rect.right - overlay.rect.left}
+                                height={overlay.rect.bottom - overlay.rect.top}
+                                style={this.makeBlockOverlayInnerStyle()} />
+                    </svg>
+                </div>
+            );
+        }
+
+        return <div></div>;
+    },
+    makeContentNode: function() {
+        return (
+            <div className="ct-text" style={this.makeContentStyle()}>
+                {this.props.text.content.words}
+            </div>
+        );
+    },
     render: function() {
         return (
             <div>
-                <div className="ct-blur-overlay" style={{clip: 'rect(' +
-                        this.props.text.overlay.rect.top + 'px,' +
-                        this.props.text.overlay.rect.right + 'px,' +
-                        this.props.text.overlay.rect.bottom + 'px,' +
-                        this.props.text.overlay.rect.left + 'px)'}}>
-                    <img src={this.props.imageUrl}></img>
-                </div>
-                <div className="ct-caption" style={{
-                        top: this.props.text.content.rect.top + 'px',
-                        left: + this.props.text.content.rect.left + 'px',
-                        width: + this.props.text.content.rect.width + 'px',
-                        fontSize: + this.props.text.content.fontSize + 'px'}}>
-                    {this.props.text.content.words}
-                </div>
+                {this.makeOverlayNode()}
+                {this.makeContentNode()}
             </div>
         );
     }
