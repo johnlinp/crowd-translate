@@ -1,5 +1,3 @@
-var React = require('react');
-
 var Translation = React.createClass({
     render: function() {
         var me = this;
@@ -150,76 +148,7 @@ var TranslationList = React.createClass({
     }
 });
 
-var EditPanel = React.createClass({
-    render: function() {
-        if (!this.props.translation) {
-            return <div></div>;
-        }
-
-        var textNodes = this.props.translation.texts.map(function(text) {
-            return <div>{text.content.words}</div>;
-        });
-
-        return (
-            <div>
-                {textNodes}
-            </div>
-        );
-    }
-});
-
-var EditBox = React.createClass({
-    getTranslationId: function() {
-        var matches = location.pathname.match('/edit/(.*)');
-
-        if (!matches || matches.length != 2) {
-            return '';
-        }
-
-        return matches[1];
-    },
-    loadTranslationFromServer: function() {
-        var me = this;
-        var translationId = this.getTranslationId();
-        $.get('/api/translation/get/' + translationId, function(translation) {
-            me.setState({translation: translation});
-        }, 'json');
-    },
-    handleTitleChange: function(evt) {
-        var state = this.state;
-        state.translation.title = evt.target.value;
-        this.setState(state);
-    },
-    getInitialState: function() {
-        return {translation: null};
-    },
-    componentDidMount: function() {
-        this.loadTranslationFromServer();
-    },
-    render: function() {
-        if (!this.state.translation) {
-            return <div></div>;
-        }
-
-        return (
-            <div>
-                <div className="col-md-5 col-md-offset-1">
-                    <div>
-                        <input type="text" className="form-control input-lg"
-                                value={this.state.translation.title}
-                                onChange={this.handleTitleChange} />
-                    </div>
-                    <Translation translation={this.state.translation} mode="edit">
-                    </Translation>
-                </div>
-                <div className="col-md-5 col-md-offset-6">
-                    <EditPanel translation={this.state.translation}>
-                    </EditPanel>
-                </div>
-            </div>
-        );
-    }
-});
-
-exports.TranslationList = TranslationList;
-exports.EditBox = EditBox;
+ReactDOM.render(
+    <TranslationList />,
+    document.getElementById('content')
+);

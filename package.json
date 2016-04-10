@@ -4,7 +4,6 @@
     "description": "Everybody translates 1 post, and make it 1000 posts.",
     "main": "index.js",
     "scripts": {
-        "postinstall": "hooks/browserify.sh",
         "start": "node index.js"
     },
     "dependencies": {
