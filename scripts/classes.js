@@ -3,6 +3,11 @@ var React = require('react');
 var Translation = React.createClass({
     render: function() {
         var me = this;
+
+        if (!this.props.translation) {
+            return <div></div>;
+        }
+
         var textNodes = this.props.translation.texts.map(function(text) {
             var imageUrl = me.props.translation.original.imageUrl;
             var key = JSON.stringify(text.overlay.rect) + JSON.stringify(text.content.rect);
@@ -11,8 +16,9 @@ var Translation = React.createClass({
                 </TranslationText>
             );
         });
+
         return (
-            <div className="col-md-6 col-md-offset-3">
+            <div>
                 <div><h2>{this.props.translation.title}</h2></div>
                 <div className="ct-image">
                     <img src={this.props.translation.original.imageUrl}></img>
@@ -130,8 +136,10 @@ var TranslationList = React.createClass({
     render: function() {
         var translationNodes = this.state.translations.map(function(translation) {
             return (
-                <Translation translation={translation} key={translation._id}>
-                </Translation>
+                <div className="col-md-6 col-md-offset-3">
+                    <Translation translation={translation} key={translation._id} mode="display">
+                    </Translation>
+                </div>
             );
         });
         return (
@@ -142,45 +150,71 @@ var TranslationList = React.createClass({
     }
 });
 
-var EditImage = React.createClass({
+var EditPanel = React.createClass({
     render: function() {
         if (!this.props.translation) {
             return <div></div>;
         }
 
+        var textNodes = this.props.translation.texts.map(function(text) {
+            return <div>{text.content.words}</div>;
+        });
+
         return (
             <div>
-                <img src={this.props.translation.original.imageUrl}></img>
+                {textNodes}
             </div>
         );
     }
 });
 
 var EditBox = React.createClass({
-    loadTranslationFromServer: function() {
-        var me = this;
-        var translationId = null;
+    getTranslationId: function() {
         var matches = location.pathname.match('/edit/(.*)');
 
         if (!matches || matches.length != 2) {
-            return;
+            return '';
         }
 
-        translationId = matches[1];
+        return matches[1];
+    },
+    loadTranslationFromServer: function() {
+        var me = this;
+        var translationId = this.getTranslationId();
         $.get('/api/translation/get/' + translationId, function(translation) {
             me.setState({translation: translation});
         }, 'json');
-    }, getInitialState: function() {
+    },
+    handleTitleChange: function(evt) {
+        var state = this.state;
+        state.translation.title = evt.target.value;
+        this.setState(state);
+    },
+    getInitialState: function() {
         return {translation: null};
     },
     componentDidMount: function() {
         this.loadTranslationFromServer();
     },
     render: function() {
+        if (!this.state.translation) {
+            return <div></div>;
+        }
+
         return (
             <div>
-                <div className="col-md-6 col-md-offset-1">
-                    <EditImage translation={this.state.translation}></EditImage>
+                <div className="col-md-5 col-md-offset-1">
+                    <div>
+                        <input type="text" className="form-control input-lg"
+                                value={this.state.translation.title}
+                                onChange={this.handleTitleChange} />
+                    </div>
+                    <Translation translation={this.state.translation} mode="edit">
+                    </Translation>
+                </div>
+                <div className="col-md-5 col-md-offset-6">
+                    <EditPanel translation={this.state.translation}>
+                    </EditPanel>
                 </div>
             </div>
         );
