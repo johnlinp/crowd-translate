@@ -25,6 +25,31 @@ var EditPanel = React.createClass({
         state.translation.texts[idx].content.words = evt.target.value;
         this.setState(state);
     },
+    handleOverlayTextureChange: function(idx, evt) {
+        var state = this.state;
+        state.translation.texts[idx].overlay.texture = evt.target.value;
+        this.setState(state);
+    },
+    handleFillColorChange: function(idx, evt) {
+        var state = this.state;
+        state.translation.texts[idx].overlay.fillColor = evt.target.value;
+        this.setState(state);
+    },
+    handleTextColorChange: function(idx, evt) {
+        var state = this.state;
+        state.translation.texts[idx].content.textColor = evt.target.value;
+        this.setState(state);
+    },
+    handleTextShadowColorChange: function(idx, evt) {
+        var state = this.state;
+        state.translation.texts[idx].content.textShadowColor = evt.target.value;
+        this.setState(state);
+    },
+    handleFontSizeChange: function(idx, evt) {
+        var state = this.state;
+        state.translation.texts[idx].content.fontSize = evt.target.value;
+        this.setState(state);
+    },
     makeBlurOverlayStyle: function(text) {
         var overlay = text.overlay;
         return {
@@ -45,7 +70,7 @@ var EditPanel = React.createClass({
     makeBlockOverlayInnerStyle: function(text) {
         var overlay = text.overlay;
         return {
-            fill: '#f0f0f0',
+            fill: overlay.fillColor,
         };
     },
     makeContentStyle: function(text) {
@@ -79,7 +104,7 @@ var EditPanel = React.createClass({
         } else if (overlay.texture == 'block') {
             return (
                 <div className="ct-text" style={this.makeBlockOverlayOutterStyle(text)}>
-                    <svg>
+                    <svg style={{width: '100%', height: 'auto'}}>
                         <rect
                                 width={overlay.rect.right - overlay.rect.left}
                                 height={overlay.rect.bottom - overlay.rect.top}
@@ -132,6 +157,51 @@ var EditPanel = React.createClass({
                     <textarea className="form-control"
                             value={text.content.words}
                             onChange={me.handleWordsChange.bind(me, idx)} />
+
+                    <div>
+                        <div className="radio">
+                            <label>
+                                <input type="radio"
+                                        name={'texture-' + idx}
+                                        value="blur"
+                                        checked={text.overlay.texture == 'blur'}
+                                        onChange={me.handleOverlayTextureChange.bind(me, idx)} />
+                                <span>模糊</span>
+                            </label>
+                        </div>
+                        <div className="radio">
+                            <label>
+                                <input type="radio"
+                                        name={'texture-' + idx}
+                                        value="block"
+                                        checked={text.overlay.texture == 'block'}
+                                        onChange={me.handleOverlayTextureChange.bind(me, idx)} />
+                                <span>色塊</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <label>色塊顏色</label>
+                    <input type="text" className="form-control"
+                            value={text.overlay.fillColor}
+                            onChange={me.handleFillColorChange.bind(me, idx)} />
+
+                    <label>文字顏色</label>
+                    <input type="text" className="form-control"
+                            value={text.content.textColor}
+                            onChange={me.handleTextColorChange.bind(me, idx)} />
+
+                    <label>文字陰影顏色</label>
+                    <input type="text" className="form-control"
+                            value={text.content.textShadowColor}
+                            onChange={me.handleTextShadowColorChange.bind(me, idx)} />
+
+                    <label>文字大小</label>
+                    <input type="text" className="form-control"
+                            value={text.content.fontSize}
+                            onChange={me.handleFontSizeChange.bind(me, idx)} />
+
+                    <hr></hr>
                 </div>
             );
         });
