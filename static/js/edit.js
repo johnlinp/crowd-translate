@@ -20,6 +20,128 @@ var EditPanel = React.createClass({
         state.translation.title = evt.target.value;
         this.setState(state);
     },
+    handleWordsChange: function(idx, evt) {
+        var state = this.state;
+        state.translation.texts[idx].content.words = evt.target.value;
+        this.setState(state);
+    },
+    makeBlurOverlayStyle: function(text) {
+        var overlay = text.overlay;
+        return {
+            clip: 'rect(' +
+                    overlay.rect.top + 'px,' +
+                    overlay.rect.right + 'px,' +
+                    overlay.rect.bottom + 'px,' +
+                    overlay.rect.left + 'px)',
+        };
+    },
+    makeBlockOverlayOutterStyle: function(text) {
+        var overlay = text.overlay;
+        return {
+            top: overlay.rect.top + 'px',
+            left: overlay.rect.left + 'px',
+        };
+    },
+    makeBlockOverlayInnerStyle: function(text) {
+        var overlay = text.overlay;
+        return {
+            fill: '#f0f0f0',
+        };
+    },
+    makeContentStyle: function(text) {
+        var content = text.content;
+        var style = {
+            top: content.rect.top + 'px',
+            left: content.rect.left + 'px',
+            width: content.rect.width + 'px',
+            fontSize: content.fontSize + 'px',
+            color: content.textColor,
+        };
+
+        if (content.textShadowColor) {
+            style.textShadow =
+                    '-1px 0 ' + content.textShadowColor + ',' +
+                    '0 1px ' + content.textShadowColor + ',' +
+                    '1px 0 ' + content.textShadowColor + ',' +
+                    '0 -1px ' + content.textShadowColor;
+        }
+
+        return style;
+    },
+    makeOverlayNode: function(text, imageUrl) {
+        var overlay = text.overlay;
+        if (overlay.texture == 'blur') {
+            return (
+                <div className="ct-text ct-blur-overlay" style={this.makeBlurOverlayStyle(text)}>
+                    <img src={imageUrl}></img>
+                </div>
+            );
+        } else if (overlay.texture == 'block') {
+            return (
+                <div className="ct-text" style={this.makeBlockOverlayOutterStyle(text)}>
+                    <svg>
+                        <rect
+                                width={overlay.rect.right - overlay.rect.left}
+                                height={overlay.rect.bottom - overlay.rect.top}
+                                style={this.makeBlockOverlayInnerStyle(text)} />
+                    </svg>
+                </div>
+            );
+        }
+
+        return <div></div>;
+    },
+    makeContentNode: function(text) {
+        return (
+            <div className="ct-text" style={this.makeContentStyle(text)}>
+                {text.content.words}
+            </div>
+        );
+    },
+    createLeftPanel: function() {
+        var me = this;
+        var imageUrl = this.state.translation.original.imageUrl;
+        var imageTextNodes = this.state.translation.texts.map(function(text, idx) {
+            return (
+                <div key={idx}>
+                    {me.makeOverlayNode(text, imageUrl)}
+                    {me.makeContentNode(text)}
+                </div>
+            );
+        });
+
+        return (
+            <div>
+                <div>
+                    <input type="text" className="form-control input-lg"
+                            value={this.state.translation.title}
+                            onChange={this.handleTitleChange} />
+                </div>
+                <div className="ct-image">
+                    <img src={this.state.translation.original.imageUrl}></img>
+                    {imageTextNodes}
+                </div>
+            </div>
+        );
+    },
+    createRightPanel: function() {
+        var me = this;
+        var typeTextNodes = this.state.translation.texts.map(function(text, idx) {
+            return (
+                <div key={idx}>
+                    <textarea className="form-control"
+                            value={text.content.words}
+                            onChange={me.handleWordsChange.bind(me, idx)} />
+                </div>
+            );
+        });
+
+        return (
+            <div>
+                {typeTextNodes}
+            </div>
+        );
+    },
     getInitialState: function() {
         return {translation: null};
     },
@@ -31,29 +153,13 @@ var EditPanel = React.createClass({
             return <div></div>;
         }
 
-        var imageTextNodes = this.state.translation.texts.map(function(text) {
-            return <div>{text.content.words}</div>;
-        });
-
-        var typeTextNodes = this.state.translation.texts.map(function(text) {
-            return <div>{text.content.words}</div>;
-        });
-
         return (
             <div>
                 <div className="col-md-5 col-md-offset-1">
-                    <div>
-                        <input type="text" className="form-control input-lg"
-                                value={this.state.translation.title}
-                                onChange={this.handleTitleChange} />
-                    </div>
-                    <div className="ct-image">
-                        <img src={this.state.translation.original.imageUrl}></img>
-                        {imageTextNodes}
-                    </div>
+                    {this.createLeftPanel()}
                 </div>
-                <div className="col-md-5 col-md-offset-6">
-                    {typeTextNodes}
+                <div className="col-md-5">
+                    {this.createRightPanel()}
                 </div>
             </div>
         );
