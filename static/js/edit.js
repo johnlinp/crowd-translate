@@ -85,12 +85,6 @@ var EditPanel = React.createClass({
             left: overlay.rect.left + 'px',
         };
     },
-    makeBlockOverlayInnerStyle: function(text) {
-        var overlay = text.overlay;
-        return {
-            fill: overlay.fillColor,
-        };
-    },
     makeContentStyle: function(text) {
         var content = text.content;
         var style = {
@@ -111,23 +105,48 @@ var EditPanel = React.createClass({
 
         return style;
     },
-    makeOverlayNode: function(text, imageUrl) {
+    makeBorderNode: function(text, textIdx) {
+        var overlay = text.overlay;
+        var visibility = (textIdx == this.state.focusTextIdx) ? 'visible' : 'hidden';
+
+        return (
+            <div className="ct-text" style={{top: '0px', left: '0px', height: '100%'}}>
+                <svg style={{width: '100%', height: '100%'}}>
+                    <rect
+                            x={overlay.rect.left}
+                            y={overlay.rect.top}
+                            width={overlay.rect.right - overlay.rect.left}
+                            height={overlay.rect.bottom - overlay.rect.top}
+                            style={{visibility: visibility, strokeWidth: 3, stroke: '#66b1e4', fillOpacity: '0'}} />
+                </svg>
+            </div>
+        );
+    },
+    makeOverlayNode: function(text, imageUrl, textIdx) {
         var overlay = text.overlay;
         if (overlay.texture == 'blur') {
             return (
-                <div className="ct-text ct-blur-overlay" style={this.makeBlurOverlayStyle(text)}>
-                    <img src={imageUrl}></img>
+                <div>
+                    <div className="ct-text ct-blur-overlay" style={this.makeBlurOverlayStyle(text)}>
+                        <img src={imageUrl}></img>
+                    </div>
+                    {this.makeBorderNode(text, textIdx)}
                 </div>
             );
         } else if (overlay.texture == 'block') {
             return (
-                <div className="ct-text" style={this.makeBlockOverlayOutterStyle(text)}>
-                    <svg style={{width: '100%', height: 'auto'}}>
-                        <rect
-                                width={overlay.rect.right - overlay.rect.left}
-                                height={overlay.rect.bottom - overlay.rect.top}
-                                style={this.makeBlockOverlayInnerStyle(text)} />
-                    </svg>
+                <div>
+                    <div className="ct-text" style={{top: '0px', left: '0px', height: '100%'}}>
+                        <svg style={{width: '100%', height: '100%'}}>
+                            <rect
+                                    x={overlay.rect.left}
+                                    y={overlay.rect.top}
+                                    width={overlay.rect.right - overlay.rect.left}
+                                    height={overlay.rect.bottom - overlay.rect.top}
+                                    style={{fill: overlay.fillColor}} />
+                        </svg>
+                    </div>
+                    {this.makeBorderNode(text, textIdx)}
                 </div>
             );
         }
@@ -147,7 +166,7 @@ var EditPanel = React.createClass({
         var imageTextNodes = this.state.translation.texts.map(function(text, idx) {
             return (
                 <div key={idx}>
-                    {me.makeOverlayNode(text, imageUrl)}
+                    {me.makeOverlayNode(text, imageUrl, idx)}
                     {me.makeContentNode(text)}
                 </div>
             );
