@@ -222,6 +222,7 @@ var EditPanel = React.createClass({
 
                 <label>色塊顏色</label>
                 <input type="text" className="form-control"
+                        disabled={text.overlay.texture != 'block'}
                         value={text.overlay.fillColor}
                         onChange={this.handleFillColorChange} />
 
