@@ -12,7 +12,16 @@ var EditPanel = React.createClass({
         var me = this;
         var translationId = this.getTranslationId();
         $.get('/api/translation/get/' + translationId, function(translation) {
-            me.setState({translation: translation});
+            var focusTextIdx = -1;
+
+            if (translation.texts.length > 0) {
+                focusTextIdx = 0;
+            }
+
+            me.setState({
+                translation: translation,
+                focusTextIdx: focusTextIdx,
+            });
         }, 'json');
     },
     handleTitleChange: function(evt) {
@@ -20,35 +29,44 @@ var EditPanel = React.createClass({
         state.translation.title = evt.target.value;
         this.setState(state);
     },
+    handleWordsFocus: function(idx, evt) {
+        this.state.focusTextIdx = idx;
+        this.setState(this.state);
+    },
     handleWordsChange: function(idx, evt) {
-        var state = this.state;
-        state.translation.texts[idx].content.words = evt.target.value;
-        this.setState(state);
+        var text = this.state.translation.texts[idx];
+        text.content.words = evt.target.value;
+        this.setState(this.state);
     },
-    handleOverlayTextureChange: function(idx, evt) {
-        var state = this.state;
-        state.translation.texts[idx].overlay.texture = evt.target.value;
-        this.setState(state);
+    handleOverlayTextureChange: function(evt) {
+        var idx = this.state.focusTextIdx;
+        var text = this.state.translation.texts[idx];
+        text.overlay.texture = evt.target.value;
+        this.setState(this.state);
     },
-    handleFillColorChange: function(idx, evt) {
-        var state = this.state;
-        state.translation.texts[idx].overlay.fillColor = evt.target.value;
-        this.setState(state);
+    handleFillColorChange: function(evt) {
+        var idx = this.state.focusTextIdx;
+        var text = this.state.translation.texts[idx];
+        text.overlay.fillColor = evt.target.value;
+        this.setState(this.state);
     },
-    handleTextColorChange: function(idx, evt) {
-        var state = this.state;
-        state.translation.texts[idx].content.textColor = evt.target.value;
-        this.setState(state);
+    handleTextColorChange: function(evt) {
+        var idx = this.state.focusTextIdx;
+        var text = this.state.translation.texts[idx];
+        text.content.textColor = evt.target.value;
+        this.setState(this.state);
     },
-    handleTextShadowColorChange: function(idx, evt) {
-        var state = this.state;
-        state.translation.texts[idx].content.textShadowColor = evt.target.value;
-        this.setState(state);
+    handleTextShadowColorChange: function(evt) {
+        var idx = this.state.focusTextIdx;
+        var text = this.state.translation.texts[idx];
+        text.content.textShadowColor = evt.target.value;
+        this.setState(this.state);
     },
-    handleFontSizeChange: function(idx, evt) {
-        var state = this.state;
-        state.translation.texts[idx].content.fontSize = evt.target.value;
-        this.setState(state);
+    handleFontSizeChange: function(evt) {
+        var idx = this.state.focusTextIdx;
+        var text = this.state.translation.texts[idx];
+        text.content.fontSize = evt.target.value;
+        this.setState(this.state);
     },
     makeBlurOverlayStyle: function(text) {
         var overlay = text.overlay;
@@ -149,6 +167,62 @@ var EditPanel = React.createClass({
             </div>
         );
     },
+    createTextEditArea: function() {
+        var focusTextIdx = this.state.focusTextIdx;
+        var text = null;
+
+        if (focusTextIdx != -1) {
+            text = this.state.translation.texts[this.state.focusTextIdx];
+        }
+
+        return (
+            <div>
+                <label>文字背景</label>
+                <div>
+                    <div className="radio">
+                        <label>
+                            <input type="radio"
+                                    name='texture'
+                                    value="blur"
+                                    checked={text.overlay.texture == 'blur'}
+                                    onChange={this.handleOverlayTextureChange} />
+                            <span>模糊</span>
+                        </label>
+                    </div>
+                    <div className="radio">
+                        <label>
+                            <input type="radio"
+                                    name='texture'
+                                    value="block"
+                                    checked={text.overlay.texture == 'block'}
+                                    onChange={this.handleOverlayTextureChange} />
+                            <span>色塊</span>
+                        </label>
+                    </div>
+                </div>
+
+                <label>色塊顏色</label>
+                <input type="text" className="form-control"
+                        value={text.overlay.fillColor}
+                        onChange={this.handleFillColorChange} />
+
+                <label>文字顏色</label>
+                <input type="text" className="form-control"
+                        value={text.content.textColor}
+                        onChange={this.handleTextColorChange} />
+
+                <label>文字陰影顏色</label>
+                <input type="text" className="form-control"
+                        value={text.content.textShadowColor}
+                        onChange={this.handleTextShadowColorChange} />
+
+                <label>文字大小</label>
+                <input type="text" className="form-control"
+                        value={text.content.fontSize}
+                        onChange={this.handleFontSizeChange} />
+            </div>
+        );
+    },
     createRightPanel: function() {
         var me = this;
         var typeTextNodes = this.state.translation.texts.map(function(text, idx) {
@@ -156,64 +230,28 @@ var EditPanel = React.createClass({
                 <div key={idx}>
                     <textarea className="form-control"
                             value={text.content.words}
+                            style={{background: me.state.focusTextIdx == idx ? '#dbedf9' : 'white'}}
+                            onFocus={me.handleWordsFocus.bind(me, idx)}
                             onChange={me.handleWordsChange.bind(me, idx)} />
-
-                    <div>
-                        <div className="radio">
-                            <label>
-                                <input type="radio"
-                                        name={'texture-' + idx}
-                                        value="blur"
-                                        checked={text.overlay.texture == 'blur'}
-                                        onChange={me.handleOverlayTextureChange.bind(me, idx)} />
-                                <span>模糊</span>
-                            </label>
-                        </div>
-                        <div className="radio">
-                            <label>
-                                <input type="radio"
-                                        name={'texture-' + idx}
-                                        value="block"
-                                        checked={text.overlay.texture == 'block'}
-                                        onChange={me.handleOverlayTextureChange.bind(me, idx)} />
-                                <span>色塊</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <label>色塊顏色</label>
-                    <input type="text" className="form-control"
-                            value={text.overlay.fillColor}
-                            onChange={me.handleFillColorChange.bind(me, idx)} />
-
-                    <label>文字顏色</label>
-                    <input type="text" className="form-control"
-                            value={text.content.textColor}
-                            onChange={me.handleTextColorChange.bind(me, idx)} />
-
-                    <label>文字陰影顏色</label>
-                    <input type="text" className="form-control"
-                            value={text.content.textShadowColor}
-                            onChange={me.handleTextShadowColorChange.bind(me, idx)} />
-
-                    <label>文字大小</label>
-                    <input type="text" className="form-control"
-                            value={text.content.fontSize}
-                            onChange={me.handleFontSizeChange.bind(me, idx)} />
-
                     <hr></hr>
                 </div>
             );
         });
 
+        var textEditArea = this.createTextEditArea();
+
         return (
             <div>
                 {typeTextNodes}
+                {textEditArea}
             </div>
         );
     },
     getInitialState: function() {
-        return {translation: null};
+        return {
+            translation: null,
+            focusTextIdx: null,
+        };
     },
     componentDidMount: function() {
         this.loadTranslationFromServer();
