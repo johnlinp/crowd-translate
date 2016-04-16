@@ -12,15 +12,9 @@ var EditPanel = React.createClass({
         var me = this;
         var translationId = this.getTranslationId();
         $.get('/api/translation/get/' + translationId, function(translation) {
-            var focusTextIdx = -1;
-
-            if (translation.texts.length > 0) {
-                focusTextIdx = 0;
-            }
-
             me.setState({
                 translation: translation,
-                focusTextIdx: focusTextIdx,
+                focusTextIdx: -1,
             });
         }, 'json');
     },
@@ -40,30 +34,50 @@ var EditPanel = React.createClass({
     },
     handleOverlayTextureChange: function(evt) {
         var idx = this.state.focusTextIdx;
+        if (idx == -1) {
+            return;
+        }
+
         var text = this.state.translation.texts[idx];
         text.overlay.texture = evt.target.value;
         this.setState(this.state);
     },
     handleFillColorChange: function(evt) {
         var idx = this.state.focusTextIdx;
+        if (idx == -1) {
+            return;
+        }
+
         var text = this.state.translation.texts[idx];
         text.overlay.fillColor = evt.target.value;
         this.setState(this.state);
     },
     handleTextColorChange: function(evt) {
         var idx = this.state.focusTextIdx;
+        if (idx == -1) {
+            return;
+        }
+
         var text = this.state.translation.texts[idx];
         text.content.textColor = evt.target.value;
         this.setState(this.state);
     },
     handleTextShadowColorChange: function(evt) {
         var idx = this.state.focusTextIdx;
+        if (idx == -1) {
+            return;
+        }
+
         var text = this.state.translation.texts[idx];
         text.content.textShadowColor = evt.target.value;
         this.setState(this.state);
     },
     handleFontSizeChange: function(evt) {
         var idx = this.state.focusTextIdx;
+        if (idx == -1) {
+            return;
+        }
+
         var text = this.state.translation.texts[idx];
         text.content.fontSize = evt.target.value;
         this.setState(this.state);
@@ -188,11 +202,12 @@ var EditPanel = React.createClass({
     },
     createTextEditArea: function() {
         var focusTextIdx = this.state.focusTextIdx;
-        var text = null;
 
-        if (focusTextIdx != -1) {
-            text = this.state.translation.texts[this.state.focusTextIdx];
+        if (focusTextIdx == -1) {
+            return <div></div>;
         }
+
+        var text = this.state.translation.texts[this.state.focusTextIdx];
 
         return (
             <div>
@@ -270,7 +285,7 @@ var EditPanel = React.createClass({
     getInitialState: function() {
         return {
             translation: null,
-            focusTextIdx: null,
+            focusTextIdx: -1,
         };
     },
     componentDidMount: function() {
