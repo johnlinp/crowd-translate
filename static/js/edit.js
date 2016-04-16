@@ -104,7 +104,7 @@ var EditPanel = React.createClass({
         var style = {
             top: content.rect.top + 'px',
             left: content.rect.left + 'px',
-            width: content.rect.width + 'px',
+            width: (content.rect.right - content.rect.left) + 'px',
             fontSize: content.fontSize + 'px',
             color: content.textColor,
         };
@@ -119,32 +119,51 @@ var EditPanel = React.createClass({
 
         return style;
     },
-    makeBorderNode: function(text, textIdx) {
-        var overlay = text.overlay;
-        var visibility = (textIdx == this.state.focusTextIdx) ? 'visible' : 'hidden';
+    makeBorderNode: function(text, which, isFocus) {
+        var target = null;
+        var strokeColor = null;
+
+        if (which == 'overlay') {
+            target = text.overlay;
+            strokeColor = '#66b1e4';
+        } else if (which == 'content') {
+            target = text.content;
+            strokeColor = '#b9dcf3';
+        }
+
+        var borderStyle = {
+            visibility: isFocus ? 'visible' : 'hidden',
+            strokeWidth: 2,
+            stroke: strokeColor,
+            strokeDasharray: "4, 2",
+            fillOpacity: '0',
+        };
 
         return (
             <div className="ct-text" style={{top: '0px', left: '0px', height: '100%'}}>
                 <svg style={{width: '100%', height: '100%'}}>
                     <rect
-                            x={overlay.rect.left}
-                            y={overlay.rect.top}
-                            width={overlay.rect.right - overlay.rect.left}
-                            height={overlay.rect.bottom - overlay.rect.top}
-                            style={{visibility: visibility, strokeWidth: 3, stroke: '#66b1e4', fillOpacity: '0'}} />
+                            x={target.rect.left}
+                            y={target.rect.top}
+                            width={target.rect.right - target.rect.left}
+                            height={target.rect.bottom - target.rect.top}
+                            style={borderStyle} />
                 </svg>
             </div>
         );
     },
     makeOverlayNode: function(text, imageUrl, textIdx) {
         var overlay = text.overlay;
+        var isFocus = textIdx == this.state.focusTextIdx;
+
         if (overlay.texture == 'blur') {
             return (
                 <div>
                     <div className="ct-text ct-blur-overlay" style={this.makeBlurOverlayStyle(text)}>
                         <img src={imageUrl}></img>
                     </div>
-                    {this.makeBorderNode(text, textIdx)}
+                    {this.makeBorderNode(text, 'overlay', isFocus)}
+                    {this.makeBorderNode(text, 'content', isFocus)}
                 </div>
             );
         } else if (overlay.texture == 'block') {
@@ -160,7 +179,8 @@ var EditPanel = React.createClass({
                                     style={{fill: overlay.fillColor}} />
                         </svg>
                     </div>
-                    {this.makeBorderNode(text, textIdx)}
+                    {this.makeBorderNode(text, 'overlay', isFocus)}
+                    {this.makeBorderNode(text, 'content', isFocus)}
                 </div>
             );
         }

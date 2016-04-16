@@ -63,7 +63,7 @@ var TranslationText = React.createClass({
         var style = {
             top: content.rect.top + 'px',
             left: content.rect.left + 'px',
-            width: content.rect.width + 'px',
+            width: (content.rect.right - content.rect.left) + 'px',
             fontSize: content.fontSize + 'px',
             color: content.textColor,
         };

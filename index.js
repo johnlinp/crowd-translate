@@ -36,7 +36,8 @@ var Translation = mongoose.model('Translation', new mongoose.Schema({
                 rect: {
                     top: Number,
                     left: Number,
-                    width: Number,
+                    bottom: Number,
+                    right: Number,
                 }
             },
             overlay: {
