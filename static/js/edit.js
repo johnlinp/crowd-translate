@@ -119,56 +119,168 @@ var EditPanel = React.createClass({
 
         return style;
     },
-    makeBorderNode: function(text, which, isFocus) {
-        var target = null;
-        var strokeColor = null;
-
-        if (which == 'overlay') {
-            target = text.overlay;
-            strokeColor = '#66b1e4';
-        } else if (which == 'content') {
-            target = text.content;
-            strokeColor = '#b9dcf3';
-        }
-
-        var borderStyle = {
-            visibility: isFocus ? 'visible' : 'hidden',
+    makeSizingBorderDisplayNode: function(rect, strokeColor) {
+        var rectStyle = {
             strokeWidth: 2,
             stroke: strokeColor,
             strokeDasharray: "4, 2",
             fillOpacity: '0',
         };
 
+        return <rect
+                x={rect.left}
+                y={rect.top}
+                width={rect.right - rect.left}
+                height={rect.bottom - rect.top}
+                style={rectStyle} />
+    },
+    mapHorizontalKey: function(rect, horizontal) {
+        switch (horizontal) {
+            case 'left':
+                return rect.left;
+            case 'right':
+                return rect.right;
+            case 'half':
+                return (rect.left + rect.right) / 2;
+            default:
+                return -1;
+        }
+    },
+    mapVerticalKey: function(rect, vertical) {
+        switch (vertical) {
+            case 'top':
+                return rect.top;
+            case 'bottom':
+                return rect.bottom;
+            case 'half':
+                return (rect.top + rect.bottom) / 2;
+            default:
+                return -1;
+        }
+    },
+    mapCursorKey: function(vertical, horizontal) {
+        switch (vertical + '-' + horizontal) {
+            case 'top-left':
+                return'nw-resize';
+            case 'top-right':
+                return'ne-resize';
+            case 'top-half':
+                return'n-resize';
+            case 'half-left':
+                return'w-resize';
+            case 'half-right':
+                return'e-resize';
+            case 'bottom-left':
+                return'sw-resize';
+            case 'bottom-right':
+                return'se-resize';
+            case 'bottom-half':
+                return's-resize';
+            default:
+                return 'default';
+        }
+
+    },
+    makeSizingDotDisplayNode: function(rect, fillColor, vertical, horizontal) {
+        var dotSize = 6;
+        var x = this.mapHorizontalKey(rect, horizontal) - dotSize / 2;
+        var y = this.mapVerticalKey(rect, vertical) - dotSize / 2;
+        var rectStyle = {
+            fill: fillColor,
+        };
+
+        return <rect
+                x={x}
+                y={y}
+                width={dotSize}
+                height={dotSize}
+                style={rectStyle} />;
+    },
+    makeSizingDotControlNode: function(rect, vertical, horizontal) {
+        var controlSize = 12;
+        var cursor = this.mapCursorKey(vertical, horizontal);
+        var x = this.mapHorizontalKey(rect, horizontal) - controlSize / 2;
+        var y = this.mapVerticalKey(rect, vertical) - controlSize / 2;
+
+        var rectStyle = {
+            cursor: cursor,
+            left: x,
+            top: y,
+            width: controlSize,
+            height: controlSize,
+        };
+
+        return <div className="ct-text" style={rectStyle}></div>;
+    },
+    mapSizingColor: function(which) {
+        switch (which) {
+            case 'overlay':
+                return '#66b1e4';
+            case 'content':
+                return '#b9dcf3';
+            default:
+                return '#000000';
+        }
+
+    },
+    makeSizingDisplayNode: function(text, which, isFocus) {
+        if (!isFocus) {
+            return <div></div>;
+        }
+
+        var rect = text[which].rect;
+        var color = this.mapSizingColor(which);
+
         return (
             <div className="ct-text" style={{top: '0px', left: '0px', height: '100%'}}>
                 <svg style={{width: '100%', height: '100%'}}>
-                    <rect
-                            x={target.rect.left}
-                            y={target.rect.top}
-                            width={target.rect.right - target.rect.left}
-                            height={target.rect.bottom - target.rect.top}
-                            style={borderStyle} />
+                    {this.makeSizingBorderDisplayNode(rect, color)}
+                    {this.makeSizingDotDisplayNode(rect, color, 'top', 'left')}
+                    {this.makeSizingDotDisplayNode(rect, color, 'top', 'right')}
+                    {this.makeSizingDotDisplayNode(rect, color, 'top', 'half')}
+                    {this.makeSizingDotDisplayNode(rect, color, 'half', 'left')}
+                    {this.makeSizingDotDisplayNode(rect, color, 'half', 'right')}
+                    {this.makeSizingDotDisplayNode(rect, color, 'bottom', 'left')}
+                    {this.makeSizingDotDisplayNode(rect, color, 'bottom', 'right')}
+                    {this.makeSizingDotDisplayNode(rect, color, 'bottom', 'half')}
                 </svg>
             </div>
         );
     },
-    makeOverlayNode: function(text, imageUrl, textIdx) {
-        var overlay = text.overlay;
-        var isFocus = textIdx == this.state.focusTextIdx;
+    makeSizingControlNode: function(text, which, isFocus) {
+        if (!isFocus) {
+            return <div></div>;
+        }
 
-        if (overlay.texture == 'blur') {
-            return (
+        var rect = text[which].rect;
+
+        return (
+            <div className="ct-text" style={{top: '0px', left: '0px', height: '100%'}}>
                 <div>
+                    {this.makeSizingDotControlNode(rect, 'top', 'left')}
+                    {this.makeSizingDotControlNode(rect, 'top', 'right')}
+                    {this.makeSizingDotControlNode(rect, 'top', 'half')}
+                    {this.makeSizingDotControlNode(rect, 'half', 'left')}
+                    {this.makeSizingDotControlNode(rect, 'half', 'right')}
+                    {this.makeSizingDotControlNode(rect, 'bottom', 'left')}
+                    {this.makeSizingDotControlNode(rect, 'bottom', 'right')}
+                    {this.makeSizingDotControlNode(rect, 'bottom', 'half')}
+                </div>
+            </div>
+        );
+    },
+    makeOverlayDisplayMainNode: function(text, imageUrl) {
+        var overlay = text.overlay;
+
+        switch (overlay.texture) {
+            case 'blur':
+                return (
                     <div className="ct-text ct-blur-overlay" style={this.makeBlurOverlayStyle(text)}>
                         <img src={imageUrl}></img>
                     </div>
-                    {this.makeBorderNode(text, 'overlay', isFocus)}
-                    {this.makeBorderNode(text, 'content', isFocus)}
-                </div>
-            );
-        } else if (overlay.texture == 'block') {
-            return (
-                <div>
+                );
+            case 'block':
+                return (
                     <div className="ct-text" style={{top: '0px', left: '0px', height: '100%'}}>
                         <svg style={{width: '100%', height: '100%'}}>
                             <rect
@@ -179,44 +291,96 @@ var EditPanel = React.createClass({
                                     style={{fill: overlay.fillColor}} />
                         </svg>
                     </div>
-                    {this.makeBorderNode(text, 'overlay', isFocus)}
-                    {this.makeBorderNode(text, 'content', isFocus)}
-                </div>
-            );
+                );
+            default:
+                return <div></div>;
         }
-
-        return <div></div>;
     },
-    makeContentNode: function(text) {
+    makeContentDisplayMainNode: function(text) {
         return (
             <div className="ct-text" style={this.makeContentStyle(text)}>
                 {text.content.words}
             </div>
         );
     },
-    createLeftPanel: function() {
+    makeOverlayDisplayNode: function(text, isFocus, imageUrl) {
+        return (
+            <div>
+                {this.makeOverlayDisplayMainNode(text, imageUrl)}
+                {this.makeSizingDisplayNode(text, 'overlay', isFocus)}
+            </div>
+        );
+    },
+    makeContentDisplayNode: function(text, isFocus) {
+        return (
+            <div>
+                {this.makeContentDisplayMainNode(text)}
+                {this.makeSizingDisplayNode(text, 'content', isFocus)}
+            </div>
+        );
+    },
+    makeOverlayControlNode: function(text, isFocus, imageUrl) {
+        return (
+            <div>
+                {this.makeSizingControlNode(text, 'overlay', isFocus)}
+            </div>
+        );
+    },
+    makeContentControlNode: function(text, isFocus, imageUrl) {
+        return (
+            <div>
+                {this.makeSizingControlNode(text, 'content', isFocus)}
+            </div>
+        );
+    },
+    makeTitleInputNode: function() {
+        return (
+            <div>
+                <input type="text" className="form-control input-lg"
+                        value={this.state.translation.title}
+                        onChange={this.handleTitleChange} />
+            </div>
+        );
+    },
+    makeImageNode: function() {
         var me = this;
         var imageUrl = this.state.translation.original.imageUrl;
-        var imageTextNodes = this.state.translation.texts.map(function(text, idx) {
+
+        var textDisplayNodes = this.state.translation.texts.map(function(text, idx) {
+            var isFocus = (idx == me.state.focusTextIdx);
+
             return (
                 <div key={idx}>
-                    {me.makeOverlayNode(text, imageUrl, idx)}
-                    {me.makeContentNode(text)}
+                    {me.makeOverlayDisplayNode(text, isFocus, imageUrl)}
+                    {me.makeContentDisplayNode(text, isFocus)}
+                </div>
+            );
+        });
+
+        var textControlNodes = this.state.translation.texts.map(function(text, idx) {
+            var isFocus = (idx == me.state.focusTextIdx);
+
+            return (
+                <div key={idx}>
+                    {me.makeOverlayControlNode(text, isFocus)}
+                    {me.makeContentControlNode(text, isFocus)}
                 </div>
             );
         });
 
         return (
+            <div className="ct-image">
+                <img src={imageUrl}></img>
+                {textDisplayNodes}
+                {textControlNodes}
+            </div>
+        );
+    },
+    createLeftPanel: function() {
+        return (
             <div>
-                <div>
-                    <input type="text" className="form-control input-lg"
-                            value={this.state.translation.title}
-                            onChange={this.handleTitleChange} />
-                </div>
-                <div className="ct-image">
-                    <img src={this.state.translation.original.imageUrl}></img>
-                    {imageTextNodes}
-                </div>
+                {this.makeTitleInputNode()}
+                {this.makeImageNode()}
             </div>
         );
     },
