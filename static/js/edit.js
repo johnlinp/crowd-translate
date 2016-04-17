@@ -28,6 +28,34 @@ var EditPanel = React.createClass({
         }
         return (this.state.focusText.which == textWhich);
     },
+    getFocusedRect: function() {
+        if (!this.state.focusText) {
+            return null;
+        }
+
+        var textIdx = this.state.focusText.index;
+        var textWhich = this.state.focusText.which;
+
+        return this.state.translation.texts[textIdx][textWhich].rect;
+    },
+    calculateOffsetLeft: function(element) {
+        var offsetLeft = 0;
+
+        do {
+            offsetLeft += element.offsetLeft;
+        } while(element = element.offsetParent);
+
+        return offsetLeft;
+    },
+    calculateOffsetTop: function(element) {
+        var offsetTop = 0;
+
+        do {
+            offsetTop += element.offsetTop;
+        } while(element = element.offsetParent);
+
+        return offsetTop;
+    },
     handleTitleChange: function(evt) {
         var state = this.state;
         state.translation.title = evt.target.value;
@@ -94,6 +122,40 @@ var EditPanel = React.createClass({
         if (!this.state.sizingStatus) {
             return;
         }
+
+        var image = document.getElementById('ct-image-container');
+        var mouseX = evt.clientX + window.pageXOffset;
+        var mouseY = evt.clientY + window.pageYOffset;
+        var offsetX = this.calculateOffsetLeft(image);
+        var offsetY = this.calculateOffsetTop(image);
+        var relativeX = mouseX - offsetX;
+        var relativeY = mouseY - offsetY;
+
+        var rect = this.getFocusedRect();
+        var vertical = this.state.sizingStatus.vertical;
+        var horizontal = this.state.sizingStatus.horizontal;
+
+        switch (vertical) {
+            case 'top':
+            case 'bottom':
+                rect[vertical] = relativeY;
+                break;
+            case 'half':
+            default:
+                break;
+        }
+
+        switch (horizontal) {
+            case 'left':
+            case 'right':
+                rect[horizontal] = relativeX;
+                break;
+            case 'half':
+            default:
+                break;
+        }
+
+        this.setState(this.state);
     },
     makeBlurOverlayStyle: function(text) {
         var overlay = text.overlay;
@@ -384,7 +446,7 @@ var EditPanel = React.createClass({
         });
 
         return (
-            <div className="ct-image">
+            <div id="ct-image-container" className="ct-image">
                 <img src={imageUrl}></img>
                 {textDisplayNodes}
                 {textControlNodes}
