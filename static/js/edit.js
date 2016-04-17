@@ -479,7 +479,7 @@ var EditPanel = React.createClass({
     },
     makeContentDisplayMainNode: function(text) {
         return (
-            <div className="ct-text" style={this.makeContentStyle(text)}>
+            <div className="ct-text ct-no-select" style={this.makeContentStyle(text)}>
                 {text.content.words}
             </div>
         );
@@ -549,7 +549,7 @@ var EditPanel = React.createClass({
 
         return (
             <div id="ct-image-container" className="ct-image">
-                <img src={imageUrl}></img>
+                <img className="ct-no-select" src={imageUrl}></img>
                 {textDisplayNodes}
                 {textControlNodes}
             </div>
