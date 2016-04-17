@@ -12,19 +12,32 @@ var EditPanel = React.createClass({
         var me = this;
         var translationId = this.getTranslationId();
         $.get('/api/translation/get/' + translationId, function(translation) {
-            me.setState({
-                translation: translation,
-                focusTextIdx: -1,
-            });
+            me.state.translation = translation;
+            me.setState(me.state);
         }, 'json');
+    },
+    isTextFocused: function(textIdx, textWhich) {
+        if (!this.state.focusText) {
+            return false;
+        }
+        if (this.state.focusText.index != textIdx) {
+            return false;
+        }
+        if (textWhich == undefined) { // don't care which
+            return true;
+        }
+        return (this.state.focusText.which == textWhich);
     },
     handleTitleChange: function(evt) {
         var state = this.state;
         state.translation.title = evt.target.value;
         this.setState(state);
     },
-    handleWordsFocus: function(idx, evt) {
-        this.state.focusTextIdx = idx;
+    handleTextInputFocus: function(idx, evt) {
+        this.state.focusText = {
+            index: idx,
+            which: 'overlay',
+        };
         this.setState(this.state);
     },
     handleWordsChange: function(idx, evt) {
@@ -33,51 +46,31 @@ var EditPanel = React.createClass({
         this.setState(this.state);
     },
     handleOverlayTextureChange: function(evt) {
-        var idx = this.state.focusTextIdx;
-        if (idx == -1) {
-            return;
-        }
-
+        var idx = this.state.focusText.index;
         var text = this.state.translation.texts[idx];
         text.overlay.texture = evt.target.value;
         this.setState(this.state);
     },
     handleFillColorChange: function(evt) {
-        var idx = this.state.focusTextIdx;
-        if (idx == -1) {
-            return;
-        }
-
+        var idx = this.state.focusText.index;
         var text = this.state.translation.texts[idx];
         text.overlay.fillColor = evt.target.value;
         this.setState(this.state);
     },
     handleTextColorChange: function(evt) {
-        var idx = this.state.focusTextIdx;
-        if (idx == -1) {
-            return;
-        }
-
+        var idx = this.state.focusText.index;
         var text = this.state.translation.texts[idx];
         text.content.textColor = evt.target.value;
         this.setState(this.state);
     },
     handleTextShadowColorChange: function(evt) {
-        var idx = this.state.focusTextIdx;
-        if (idx == -1) {
-            return;
-        }
-
+        var idx = this.state.focusText.index;
         var text = this.state.translation.texts[idx];
         text.content.textShadowColor = evt.target.value;
         this.setState(this.state);
     },
     handleFontSizeChange: function(evt) {
-        var idx = this.state.focusTextIdx;
-        if (idx == -1) {
-            return;
-        }
-
+        var idx = this.state.focusText.index;
         var text = this.state.translation.texts[idx];
         text.content.fontSize = evt.target.value;
         this.setState(this.state);
@@ -373,23 +366,19 @@ var EditPanel = React.createClass({
         var imageUrl = this.state.translation.original.imageUrl;
 
         var textDisplayNodes = this.state.translation.texts.map(function(text, idx) {
-            var isFocus = (idx == me.state.focusTextIdx);
-
             return (
                 <div key={idx}>
-                    {me.makeOverlayDisplayNode(text, isFocus, imageUrl)}
-                    {me.makeContentDisplayNode(text, isFocus)}
+                    {me.makeOverlayDisplayNode(text, me.isTextFocused(idx, 'overlay'), imageUrl)}
+                    {me.makeContentDisplayNode(text, me.isTextFocused(idx, 'content'))}
                 </div>
             );
         });
 
         var textControlNodes = this.state.translation.texts.map(function(text, idx) {
-            var isFocus = (idx == me.state.focusTextIdx);
-
             return (
                 <div key={idx}>
-                    {me.makeOverlayControlNode(text, isFocus)}
-                    {me.makeContentControlNode(text, isFocus)}
+                    {me.makeOverlayControlNode(text, me.isTextFocused(idx, 'overlay'))}
+                    {me.makeContentControlNode(text, me.isTextFocused(idx, 'content'))}
                 </div>
             );
         });
@@ -410,14 +399,12 @@ var EditPanel = React.createClass({
             </div>
         );
     },
-    createTextEditArea: function() {
-        var focusTextIdx = this.state.focusTextIdx;
-
-        if (focusTextIdx == -1) {
+    createTextDetailArea: function() {
+        if (!this.state.focusText) {
             return <div></div>;
         }
 
-        var text = this.state.translation.texts[this.state.focusTextIdx];
+        var text = this.state.translation.texts[this.state.focusText.index];
 
         return (
             <div>
@@ -475,15 +462,15 @@ var EditPanel = React.createClass({
                 <div key={idx}>
                     <textarea className="form-control"
                             value={text.content.words}
-                            style={{background: me.state.focusTextIdx == idx ? '#dbedf9' : 'white'}}
-                            onFocus={me.handleWordsFocus.bind(me, idx)}
+                            style={{background: me.isTextFocused(idx) ? '#dbedf9' : 'white'}}
+                            onFocus={me.handleTextInputFocus.bind(me, idx)}
                             onChange={me.handleWordsChange.bind(me, idx)} />
                     <hr></hr>
                 </div>
             );
         });
 
-        var textEditArea = this.createTextEditArea();
+        var textEditArea = this.createTextDetailArea();
 
         return (
             <div>
@@ -495,7 +482,7 @@ var EditPanel = React.createClass({
     getInitialState: function() {
         return {
             translation: null,
-            focusTextIdx: -1,
+            focusText: null,
             sizingStatus: null,
         };
     },
