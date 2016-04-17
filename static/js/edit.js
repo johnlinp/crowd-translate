@@ -150,6 +150,13 @@ var EditPanel = React.createClass({
         this.state.sizingStatus = null;
         this.setState(this.state);
     },
+    handleGrabSquareClick: function(textIdx, textWhich, evt) {
+        this.state.focusText = {
+            index: textIdx,
+            which: textWhich,
+        };
+        this.setState(this.state);
+    },
     handleSizingDotControlMouseMove: function(evt) {
         if (!this.state.sizingStatus) {
             return;
@@ -422,6 +429,27 @@ var EditPanel = React.createClass({
             </div>
         );
     },
+    makeGrabSquareNode: function(text, which, isFocus, textIdx) {
+        var rect = text[which].rect;
+
+        var rectStyle = {
+            cursor: 'pointer',
+            left: rect.left,
+            top: rect.top,
+            width: rect.right - rect.left,
+            height: rect.bottom - rect.top,
+        };
+
+        return (
+            <div className="ct-text" style={{top: '0px', left: '0px', height: '100%'}}>
+                <div
+                        className="ct-text"
+                        onClick={this.handleGrabSquareClick.bind(this, textIdx, which)}
+                        style={rectStyle}>
+                </div>
+            </div>
+        );
+    },
     makeOverlayDisplayMainNode: function(text, imageUrl) {
         var overlay = text.overlay;
 
@@ -472,16 +500,18 @@ var EditPanel = React.createClass({
             </div>
         );
     },
-    makeOverlayControlNode: function(text, isFocus, imageUrl) {
+    makeOverlayControlNode: function(text, isFocus, textIdx) {
         return (
             <div>
+                {this.makeGrabSquareNode(text, 'overlay', isFocus, textIdx)}
                 {this.makeSizingControlNode(text, 'overlay', isFocus)}
             </div>
         );
     },
-    makeContentControlNode: function(text, isFocus, imageUrl) {
+    makeContentControlNode: function(text, isFocus, textIdx) {
         return (
             <div>
+                {this.makeGrabSquareNode(text, 'content', isFocus, textIdx)}
                 {this.makeSizingControlNode(text, 'content', isFocus)}
             </div>
         );
@@ -511,8 +541,8 @@ var EditPanel = React.createClass({
         var textControlNodes = this.state.translation.texts.map(function(text, idx) {
             return (
                 <div key={idx}>
-                    {me.makeOverlayControlNode(text, me.isTextFocused(idx, 'overlay'))}
-                    {me.makeContentControlNode(text, me.isTextFocused(idx, 'content'))}
+                    {me.makeOverlayControlNode(text, me.isTextFocused(idx, 'overlay'), idx)}
+                    {me.makeContentControlNode(text, me.isTextFocused(idx, 'content'), idx)}
                 </div>
             );
         });
