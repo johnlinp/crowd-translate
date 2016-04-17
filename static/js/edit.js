@@ -28,6 +28,38 @@ var EditPanel = React.createClass({
         }
         return (this.state.focusText.which == textWhich);
     },
+    getTextTemplate: function() {
+        if (this.state.focusText) {
+            return this.state.translation.texts[this.state.focusText.index];
+        }
+        if (this.state.translation.texts.length > 0) {
+            return this.state.translation.texts[0];
+        }
+        return {
+            content: {
+                words: '',
+                fontSize: 16,
+                textColor: 'white',
+                textShadowColor: 'black',
+                rect: {
+                    top: 0,
+                    left: 0,
+                    bottom: 100,
+                    right: 100,
+                },
+            },
+            overlay: {
+                texture: 'block',
+                fillColor: 'white',
+                rect: {
+                    top: 0,
+                    left: 0,
+                    bottom: 100,
+                    right: 100,
+                },
+            },
+        };
+    },
     getFocusedRect: function() {
         if (!this.state.focusText) {
             return null;
@@ -154,6 +186,41 @@ var EditPanel = React.createClass({
             default:
                 break;
         }
+
+        this.setState(this.state);
+    },
+    handleAddTextButtonClick: function(evt) {
+        var textTemplate = this.getTextTemplate();
+
+        this.state.translation.texts.push({
+            content: {
+                words: '一行新的',
+                fontSize: textTemplate.content.fontSize,
+                textColor: textTemplate.content.textColor,
+                textShadowColor: textTemplate.content.textShadowColor,
+                rect: {
+                    top: 30,
+                    left: 30,
+                    bottom: 80,
+                    right: 180,
+                },
+            },
+            overlay: {
+                texture: textTemplate.overlay.texture,
+                fillColor: textTemplate.overlay.fillColor,
+                rect: {
+                    top: 10,
+                    left: 10,
+                    bottom: 100,
+                    right: 200,
+                },
+            },
+        });
+
+        this.state.focusText = {
+            index: this.state.translation.texts.length - 1,
+            which: 'overlay',
+        };
 
         this.setState(this.state);
     },
@@ -517,9 +584,20 @@ var EditPanel = React.createClass({
             </div>
         );
     },
-    createRightPanel: function() {
+    createAddTextButton: function() {
+        return (
+            <div>
+                <p>
+                    <button className="btn btn-default" onClick={this.handleAddTextButtonClick}>加一行新的</button>
+                </p>
+                <hr></hr>
+            </div>
+        );
+    },
+    createTextInputList: function() {
         var me = this;
-        var typeTextNodes = this.state.translation.texts.map(function(text, idx) {
+
+        return this.state.translation.texts.map(function(text, idx) {
             return (
                 <div key={idx}>
                     <textarea className="form-control"
@@ -531,12 +609,16 @@ var EditPanel = React.createClass({
                 </div>
             );
         });
-
+    },
+    createRightPanel: function() {
+        var addTextButton = this.createAddTextButton();
+        var textInputList = this.createTextInputList();
         var textEditArea = this.createTextDetailArea();
 
         return (
             <div>
-                {typeTextNodes}
+                {addTextButton}
+                {textInputList}
                 {textEditArea}
             </div>
         );
