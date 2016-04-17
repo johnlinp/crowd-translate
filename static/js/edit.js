@@ -189,6 +189,11 @@ var EditPanel = React.createClass({
 
         this.setState(this.state);
     },
+    handleDeleteTextButtonClick: function(evt) {
+        this.state.translation.texts.splice(this.state.focusText.index, 1);
+        this.state.focusText = null;
+        this.setState(this.state);
+    },
     handleAddTextButtonClick: function(evt) {
         var textTemplate = this.getTextTemplate();
 
@@ -537,50 +542,57 @@ var EditPanel = React.createClass({
 
         return (
             <div>
-                <label>文字背景</label>
-                <div>
-                    <div className="radio">
-                        <label>
-                            <input type="radio"
-                                    name='texture'
-                                    value="blur"
-                                    checked={text.overlay.texture == 'blur'}
-                                    onChange={this.handleOverlayTextureChange} />
-                            <span>模糊</span>
-                        </label>
+                <p>
+                    <label>文字背景</label>
+                    <div>
+                        <div className="radio">
+                            <label>
+                                <input type="radio"
+                                        name='texture'
+                                        value="blur"
+                                        checked={text.overlay.texture == 'blur'}
+                                        onChange={this.handleOverlayTextureChange} />
+                                <span>模糊</span>
+                            </label>
+                        </div>
+                        <div className="radio">
+                            <label>
+                                <input type="radio"
+                                        name='texture'
+                                        value="block"
+                                        checked={text.overlay.texture == 'block'}
+                                        onChange={this.handleOverlayTextureChange} />
+                                <span>色塊</span>
+                            </label>
+                        </div>
                     </div>
-                    <div className="radio">
-                        <label>
-                            <input type="radio"
-                                    name='texture'
-                                    value="block"
-                                    checked={text.overlay.texture == 'block'}
-                                    onChange={this.handleOverlayTextureChange} />
-                            <span>色塊</span>
-                        </label>
-                    </div>
-                </div>
 
-                <label>色塊顏色</label>
-                <input type="text" className="form-control"
-                        disabled={text.overlay.texture != 'block'}
-                        value={text.overlay.fillColor}
-                        onChange={this.handleFillColorChange} />
+                    <label>色塊顏色</label>
+                    <input type="text" className="form-control"
+                            disabled={text.overlay.texture != 'block'}
+                            value={text.overlay.fillColor}
+                            onChange={this.handleFillColorChange} />
 
-                <label>文字顏色</label>
-                <input type="text" className="form-control"
-                        value={text.content.textColor}
-                        onChange={this.handleTextColorChange} />
+                    <label>文字顏色</label>
+                    <input type="text" className="form-control"
+                            value={text.content.textColor}
+                            onChange={this.handleTextColorChange} />
 
-                <label>文字陰影顏色</label>
-                <input type="text" className="form-control"
-                        value={text.content.textShadowColor}
-                        onChange={this.handleTextShadowColorChange} />
+                    <label>文字陰影顏色</label>
+                    <input type="text" className="form-control"
+                            value={text.content.textShadowColor}
+                            onChange={this.handleTextShadowColorChange} />
 
-                <label>文字大小</label>
-                <input type="text" className="form-control"
-                        value={text.content.fontSize}
-                        onChange={this.handleFontSizeChange} />
+                    <label>文字大小</label>
+                    <input type="text" className="form-control"
+                            value={text.content.fontSize}
+                            onChange={this.handleFontSizeChange} />
+
+                </p>
+
+                <p>
+                    <button className="btn btn-danger" onClick={this.handleDeleteTextButtonClick}>把這行刪掉</button>
+                </p>
             </div>
         );
     },
@@ -588,7 +600,7 @@ var EditPanel = React.createClass({
         return (
             <div>
                 <p>
-                    <button className="btn btn-default" onClick={this.handleAddTextButtonClick}>加一行新的</button>
+                    <button className="btn btn-primary" onClick={this.handleAddTextButtonClick}>加一行新的</button>
                 </p>
                 <hr></hr>
             </div>
