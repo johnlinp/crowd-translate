@@ -82,6 +82,26 @@ var EditPanel = React.createClass({
         text.content.fontSize = evt.target.value;
         this.setState(this.state);
     },
+    handleSizingDotControlMouseDown: function(vertical, horizontal, evt) {
+        this.state.sizingStatus = {
+            vertical: vertical,
+            horizontal: horizontal,
+        };
+        this.setState(this.state);
+    },
+    handleSizingDotControlMouseUp: function(evt) {
+        if (!this.state.sizingStatus) {
+            return;
+        }
+
+        this.state.sizingStatus = null;
+        this.setState(this.state);
+    },
+    handleSizingDotControlMouseMove: function(evt) {
+        if (!this.state.sizingStatus) {
+            return;
+        }
+    },
     makeBlurOverlayStyle: function(text) {
         var overlay = text.overlay;
         return {
@@ -210,7 +230,13 @@ var EditPanel = React.createClass({
             height: controlSize,
         };
 
-        return <div className="ct-text" style={rectStyle}></div>;
+        return (
+            <div
+                    className="ct-text"
+                    onMouseDown={this.handleSizingDotControlMouseDown.bind(this, vertical, horizontal)}
+                    style={rectStyle}>
+            </div>
+        );
     },
     mapSizingColor: function(which) {
         switch (which) {
@@ -470,6 +496,7 @@ var EditPanel = React.createClass({
         return {
             translation: null,
             focusTextIdx: -1,
+            sizingStatus: null,
         };
     },
     componentDidMount: function() {
@@ -481,7 +508,9 @@ var EditPanel = React.createClass({
         }
 
         return (
-            <div>
+            <div
+                    onMouseUp={this.handleSizingDotControlMouseUp}
+                    onMouseMove={this.handleSizingDotControlMouseMove}>
                 <div className="col-md-5 col-md-offset-1">
                     {this.createLeftPanel()}
                 </div>
