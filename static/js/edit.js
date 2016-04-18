@@ -136,18 +136,19 @@ var EditPanel = React.createClass({
         this.setState(this.state);
     },
     handleSizingDotControlMouseDown: function(vertical, horizontal, evt) {
-        this.state.sizingStatus = {
+        this.state.rectModifyStatus = {
+            mode: 'resize',
             vertical: vertical,
             horizontal: horizontal,
         };
         this.setState(this.state);
     },
-    handleSizingDotControlMouseUp: function(evt) {
-        if (!this.state.sizingStatus) {
+    handleRectModifyMouseUp: function(evt) {
+        if (!this.state.rectModifyStatus) {
             return;
         }
 
-        this.state.sizingStatus = null;
+        this.state.rectModifyStatus = null;
         this.setState(this.state);
     },
     handleGrabSquareClick: function(textIdx, textWhich, evt) {
@@ -157,11 +158,24 @@ var EditPanel = React.createClass({
         };
         this.setState(this.state);
     },
-    handleSizingDotControlMouseMove: function(evt) {
-        if (!this.state.sizingStatus) {
-            return;
-        }
+    handleGrabSquareMouseDown: function(textIdx, textWhich, evt) {
+        this.state.focusText = {
+            index: textIdx,
+            which: textWhich,
+        };
 
+        var coor = this.calculateMouseCoordinate(evt);
+        var rect = this.getFocusedRect();
+
+        this.state.rectModifyStatus = {
+            mode: 'move',
+            grabX: coor.x - rect.left,
+            grabY: coor.y - rect.top,
+        };
+
+        this.setState(this.state);
+    },
+    calculateMouseCoordinate: function(evt) {
         var image = document.getElementById('ct-image-container');
         var mouseX = evt.clientX + window.pageXOffset;
         var mouseY = evt.clientY + window.pageYOffset;
@@ -170,14 +184,21 @@ var EditPanel = React.createClass({
         var relativeX = mouseX - offsetX;
         var relativeY = mouseY - offsetY;
 
+        return {
+            x: relativeX,
+            y: relativeY,
+        };
+    },
+    handleRectResize: function(evt) {
         var rect = this.getFocusedRect();
-        var vertical = this.state.sizingStatus.vertical;
-        var horizontal = this.state.sizingStatus.horizontal;
+        var vertical = this.state.rectModifyStatus.vertical;
+        var horizontal = this.state.rectModifyStatus.horizontal;
+        var coor = this.calculateMouseCoordinate(evt);
 
         switch (vertical) {
             case 'top':
             case 'bottom':
-                rect[vertical] = relativeY;
+                rect[vertical] = coor.y;
                 break;
             case 'half':
             default:
@@ -187,9 +208,39 @@ var EditPanel = React.createClass({
         switch (horizontal) {
             case 'left':
             case 'right':
-                rect[horizontal] = relativeX;
+                rect[horizontal] = coor.x;
                 break;
             case 'half':
+            default:
+                break;
+        }
+    },
+    handleRectMove: function(evt) {
+        var coor = this.calculateMouseCoordinate(evt);
+        var rect = this.getFocusedRect();
+
+        var width = rect.right - rect.left;
+        var height = rect.bottom - rect.top;
+
+        rect.left = coor.x - this.state.rectModifyStatus.grabX;
+        rect.top = coor.y - this.state.rectModifyStatus.grabY;
+        rect.right = rect.left + width;
+        rect.bottom = rect.top + height;
+
+        this.setState(this.state);
+    },
+    handleRectModifyMouseMove: function(evt) {
+        if (!this.state.rectModifyStatus) {
+            return;
+        }
+
+        switch (this.state.rectModifyStatus.mode) {
+            case 'resize':
+                this.handleRectResize(evt);
+                break;
+            case 'move':
+                this.handleRectMove(evt);
+                break;
             default:
                 break;
         }
@@ -445,6 +496,7 @@ var EditPanel = React.createClass({
                 <div
                         className="ct-text"
                         onClick={this.handleGrabSquareClick.bind(this, textIdx, which)}
+                        onMouseDown={this.handleGrabSquareMouseDown.bind(this, textIdx, which)}
                         style={rectStyle}>
                 </div>
             </div>
@@ -669,7 +721,7 @@ var EditPanel = React.createClass({
         return {
             translation: null,
             focusText: null,
-            sizingStatus: null,
+            rectModifyStatus: null,
         };
     },
     componentDidMount: function() {
@@ -682,8 +734,8 @@ var EditPanel = React.createClass({
 
         return (
             <div
-                    onMouseUp={this.handleSizingDotControlMouseUp}
-                    onMouseMove={this.handleSizingDotControlMouseMove}>
+                    onMouseUp={this.handleRectModifyMouseUp}
+                    onMouseMove={this.handleRectModifyMouseMove}>
                 <div className="col-md-5 col-md-offset-1">
                     {this.createLeftPanel()}
                 </div>
