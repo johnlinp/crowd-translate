@@ -1,15 +1,6 @@
 var express = require('express');
 var mongoose = require('mongoose');
-
-var app = express();
-
-app.set('port', (process.env.PORT || 5000));
-
-app.use(express.static(__dirname + '/static'));
-
-// views is directory for all template files
-app.set('views', __dirname + '/views');
-app.set('view engine', 'ejs');
+var everyauth = require('everyauth');
 
 mongoose.connect(process.env.MONGOLAB_URI, function(err, res) {
     if (err) throw err;
@@ -54,12 +45,36 @@ var Translation = mongoose.model('Translation', new mongoose.Schema({
     ],
 }));
 
+everyauth.google
+    .appId(process.env.GOOGLE_CLIENT_ID)
+    .appSecret(process.env.GOOGLE_CLIENT_SECRET)
+    .scope('https://www.googleapis.com/auth/plus.me')
+    .entryPath('/auth/google')
+    .redirectPath('/')
+    .handleAuthCallbackError(function(req, res) {
+    })
+    .findOrCreateUser(function(session, accessToken, accessTokenExtra, googleUserMetadata) {
+    });
+
+var app = express();
+
+app.set('port', (process.env.PORT || 5000));
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
+
+app.use(express.static(__dirname + '/static'));
+app.use(everyauth.middleware(app));
+
 app.get('/', function(request, response) {
     response.render('pages/index');
 });
 
 app.get('/contribute', function(request, response) {
     response.render('pages/contribute');
+});
+
+app.get('/login', function(request, response) {
+    response.render('pages/login');
 });
 
 app.get('/edit/:translationId', function(request, response) {

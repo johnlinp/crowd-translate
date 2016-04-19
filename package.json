@@ -14,7 +14,8 @@
         "babelify": "~7.2.0",
         "react": "~15.0.1",
         "babel-preset-react": "~6.5.0",
-        "browserify": "~13.0.0"
+        "browserify": "~13.0.0",
+        "everyauth": "~0.4.9"
     },
     "engines": {
         "node": "0.12.7"
