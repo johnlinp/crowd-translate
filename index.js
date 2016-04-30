@@ -1,6 +1,9 @@
 var express = require('express');
 var mongoose = require('mongoose');
-var everyauth = require('everyauth');
+var cookieParser = require('cookie-parser');
+var session = require('express-session');
+var passport = require('passport');
+var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
 mongoose.connect(process.env.MONGOLAB_URI, function(err, res) {
     if (err) throw err;
@@ -45,16 +48,47 @@ var Translation = mongoose.model('Translation', new mongoose.Schema({
     ],
 }));
 
-everyauth.google
-    .appId(process.env.GOOGLE_CLIENT_ID)
-    .appSecret(process.env.GOOGLE_CLIENT_SECRET)
-    .scope('https://www.googleapis.com/auth/plus.me')
-    .entryPath('/auth/google')
-    .redirectPath('/')
-    .handleAuthCallbackError(function(req, res) {
-    })
-    .findOrCreateUser(function(session, accessToken, accessTokenExtra, googleUserMetadata) {
+var User = mongoose.model('User', new mongoose.Schema({
+    provider: String,
+    socialId: String,
+    displayName: String,
+}));
+
+passport.serializeUser(function(user, done) {
+    done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done) {
+    User.findById(id, function(err, user) {
+        done(err, user);
     });
+});
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "/auth/google/callback"
+}, function(accessToken, refreshToken, profile, done) {
+    User.findOne({ provider: 'google', socialId: profile.id })
+            .exec(function(err, user) {
+        if (err) throw err;
+
+        if (user) {
+            done(err, user);
+            return;
+        }
+
+        user = new User();
+        user.provider = 'google';
+        user.socialId = profile.id;
+        user.displayName = profile.displayName;
+        user.save(function(err) {
+            if (err) throw err;
+
+            done(err, user);
+        });
+    });
+}));
 
 var app = express();
 
@@ -63,7 +97,10 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 app.use(express.static(__dirname + '/static'));
-app.use(everyauth.middleware(app));
+app.use(cookieParser('htuayreve'));
+app.use(session());
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.get('/', function(request, response) {
     response.render('pages/index');
@@ -79,6 +116,14 @@ app.get('/login', function(request, response) {
 
 app.get('/edit/:translationId', function(request, response) {
     response.render('pages/edit');
+});
+
+app.get('/auth/google', passport.authenticate('google', {
+    scope: ['https://www.googleapis.com/auth/plus.login']
+}));
+
+app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), function(request, response) {
+    response.redirect('/');
 });
 
 app.get('/api/translation/list', function(request, response) {
