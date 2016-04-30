@@ -4,6 +4,7 @@ var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var passport = require('passport');
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+var TwitterStrategy = require('passport-twitter').Strategy;
 
 mongoose.connect(process.env.MONGOLAB_URI, function(err, res) {
     if (err) throw err;
@@ -49,10 +50,29 @@ var Translation = mongoose.model('Translation', new mongoose.Schema({
 }));
 
 var User = mongoose.model('User', new mongoose.Schema({
-    provider: String,
-    socialId: String,
     displayName: String,
+    googleId: String,
+    twitterId: String,
 }));
+
+var findOrCreateUser = function(socialKey, profile, done) {
+    var query = {};
+    query[socialKey] = profile.id;
+
+    User.findOne(query).exec(function(err, user) {
+        if (user) {
+            done(err, user);
+            return;
+        }
+
+        user = new User();
+        user.displayName = profile.displayName;
+        user[socialKey] = profile.id;
+        user.save(function(err) {
+            done(err, user);
+        });
+    });
+};
 
 passport.serializeUser(function(user, done) {
     done(null, user.id);
@@ -69,25 +89,15 @@ passport.use(new GoogleStrategy({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: "/auth/google/callback"
 }, function(accessToken, refreshToken, profile, done) {
-    User.findOne({ provider: 'google', socialId: profile.id })
-            .exec(function(err, user) {
-        if (err) throw err;
+    findOrCreateUser('googleId', profile, done);
+}));
 
-        if (user) {
-            done(err, user);
-            return;
-        }
-
-        user = new User();
-        user.provider = 'google';
-        user.socialId = profile.id;
-        user.displayName = profile.displayName;
-        user.save(function(err) {
-            if (err) throw err;
-
-            done(err, user);
-        });
-    });
+passport.use(new TwitterStrategy({
+    consumerKey: process.env.TWITTER_CONSUMER_ID,
+    consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
+    callbackURL: "/auth/twitter/callback"
+}, function(accessToken, refreshToken, profile, done) {
+    findOrCreateUser('twitterId', profile, done);
 }));
 
 var app = express();
@@ -136,6 +146,14 @@ app.get('/auth/google', passport.authenticate('google', {
 }));
 
 app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), function(request, response) {
+    response.redirect('/');
+});
+
+app.get('/auth/twitter', passport.authenticate('twitter', {
+    scope: ['https://www.googleapis.com/auth/plus.login']
+}));
+
+app.get('/auth/twitter/callback', passport.authenticate('twitter', { failureRedirect: '/login' }), function(request, response) {
     response.redirect('/');
 });
 
