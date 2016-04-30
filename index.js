@@ -103,19 +103,32 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.get('/', function(request, response) {
-    response.render('pages/index');
+    response.render('pages/index', {
+        user: request.user
+    });
 });
 
 app.get('/contribute', function(request, response) {
-    response.render('pages/contribute');
+    response.render('pages/contribute', {
+        user: request.user
+    });
 });
 
 app.get('/login', function(request, response) {
-    response.render('pages/login');
+    response.render('pages/login', {
+        user: request.user
+    });
+});
+
+app.get('/logout', function(request, response) {
+    request.logout();
+    response.redirect('/');
 });
 
 app.get('/edit/:translationId', function(request, response) {
-    response.render('pages/edit');
+    response.render('pages/edit', {
+        user: request.user
+    });
 });
 
 app.get('/auth/google', passport.authenticate('google', {
