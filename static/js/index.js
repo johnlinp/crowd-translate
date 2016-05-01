@@ -1,9 +1,22 @@
 var Translation = React.createClass({
     render: function() {
         var me = this;
+        var editUrl = '#';
 
         if (!this.props.translation) {
             return <div></div>;
+        }
+
+        if (this.props.myself) {
+            if (!this.props.myself.login) {
+                editUrl = '/login';
+            } else {
+                if (this.props.translation.author._id == this.props.myself.id) {
+                    editUrl = '/edit/' + this.props.translation._id;
+                } else {
+                    editUrl = '/copy/' + this.props.translation._id;
+                }
+            }
         }
 
         var textNodes = this.props.translation.texts.map(function(text) {
@@ -25,7 +38,7 @@ var Translation = React.createClass({
                 <div>
                     <div className="btn-group" role="group">
                         <a href={this.props.translation.original.pageUrl} target="_blank" className="btn btn-default">出處</a>
-                        <a href={'/edit/' + this.props.translation._id} className="btn btn-default">修正</a>
+                        <a href={editUrl} className="btn btn-default">修正</a>
                     </div>
                 </div>
                 <hr></hr>
@@ -119,27 +132,47 @@ var TranslationText = React.createClass({
 });
 
 var TranslationList = React.createClass({
-    loadTranslationsFromServer: function() {
+    loadMyself: function() {
+        var me = this;
+        $.get('/api/myself', function(myself) {
+            me.state.myself = myself;
+            me.setState(me.state);
+        }, 'json');
+    },
+    loadTranslations: function() {
         var me = this;
         $.get('/api/translation/list', function(translations) {
-            me.setState({translations: translations});
+            me.state.translations = translations;
+            me.setState(me.state);
         }, 'json');
     },
     getInitialState: function() {
-        return {translations: []};
+        return {
+            myself: null,
+            translations: null,
+        };
     },
     componentDidMount: function() {
-        this.loadTranslationsFromServer();
+        this.loadMyself();
+        this.loadTranslations();
     },
     render: function() {
-        var translationNodes = this.state.translations.map(function(translation) {
+        var translations = this.state.translations;
+        var myself = this.state.myself;
+
+        if (!translations) {
+            return <div></div>;
+        }
+
+        var translationNodes = translations.map(function(translation) {
             return (
                 <div className="col-md-6 col-md-offset-3">
-                    <Translation translation={translation} key={translation._id} mode="display">
+                    <Translation translation={translation} myself={myself} key={translation._id}>
                     </Translation>
                 </div>
             );
         });
+
         return (
             <div>
                 {translationNodes}
@@ -152,3 +185,4 @@ ReactDOM.render(
     <TranslationList />,
     document.getElementById('content')
 );
+
