@@ -43,7 +43,7 @@ var FreshList = React.createClass({
         var freshs = this.state.freshs;
 
         if (!freshs) {
-            return <div></div>;
+            return <div><center><h3>載入中…</h3></center></div>;
         }
 
         var freshNodes = freshs.map(function(fresh) {

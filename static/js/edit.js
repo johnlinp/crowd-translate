@@ -729,7 +729,7 @@ var EditPanel = React.createClass({
     },
     render: function() {
         if (!this.state.translation) {
-            return <div></div>;
+            return <div><center><h3>載入中…</h3></center></div>;
         }
 
         return (

@@ -133,8 +133,9 @@ var TranslationList = React.createClass({
     },
     render: function() {
         var translations = this.state.translations;
+
         if (!translations) {
-            return <div></div>
+            return <div><center><h3>載入中…</h3></center></div>;
         }
 
         var translationNodes = translations.map(function(translation) {
