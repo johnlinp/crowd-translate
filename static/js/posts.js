@@ -25,7 +25,7 @@ var Translation = React.createClass({
                 <div>
                     <div className="btn-group" role="group">
                         <a href={this.props.translation.original.pageUrl} target="_blank" className="btn btn-default">出處</a>
-                        <a href={'/edit/' + this.props.translation._id} className="btn btn-default">修正</a>
+                        <a href={'/edit/' + this.props.translation._id} className="btn btn-default">編輯</a>
                     </div>
                 </div>
                 <hr></hr>

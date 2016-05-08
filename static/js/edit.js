@@ -91,6 +91,7 @@ var EditPanel = React.createClass({
     handleTitleChange: function(evt) {
         var state = this.state;
         state.translation.title = evt.target.value;
+        state.dirty = true;
         this.setState(state);
     },
     handleTextInputFocus: function(idx, evt) {
@@ -100,39 +101,11 @@ var EditPanel = React.createClass({
         };
         this.setState(this.state);
     },
-    handleWordsChange: function(idx, evt) {
-        var text = this.state.translation.texts[idx];
-        text.content.words = evt.target.value;
-        this.setState(this.state);
-    },
-    handleOverlayTextureChange: function(evt) {
+    handleTextPropertyChange: function(which, property, evt) {
         var idx = this.state.focusText.index;
         var text = this.state.translation.texts[idx];
-        text.overlay.texture = evt.target.value;
-        this.setState(this.state);
-    },
-    handleFillColorChange: function(evt) {
-        var idx = this.state.focusText.index;
-        var text = this.state.translation.texts[idx];
-        text.overlay.fillColor = evt.target.value;
-        this.setState(this.state);
-    },
-    handleTextColorChange: function(evt) {
-        var idx = this.state.focusText.index;
-        var text = this.state.translation.texts[idx];
-        text.content.textColor = evt.target.value;
-        this.setState(this.state);
-    },
-    handleTextShadowColorChange: function(evt) {
-        var idx = this.state.focusText.index;
-        var text = this.state.translation.texts[idx];
-        text.content.textShadowColor = evt.target.value;
-        this.setState(this.state);
-    },
-    handleFontSizeChange: function(evt) {
-        var idx = this.state.focusText.index;
-        var text = this.state.translation.texts[idx];
-        text.content.fontSize = evt.target.value;
+        text[which][property] = evt.target.value;
+        this.state.dirty = true;
         this.setState(this.state);
     },
     handleSizingDotControlMouseDown: function(vertical, horizontal, evt) {
@@ -245,11 +218,13 @@ var EditPanel = React.createClass({
                 break;
         }
 
+        this.state.dirty = true;
         this.setState(this.state);
     },
     handleDeleteTextButtonClick: function(evt) {
         this.state.translation.texts.splice(this.state.focusText.index, 1);
         this.state.focusText = null;
+        this.state.dirty = true;
         this.setState(this.state);
     },
     handleAddTextButtonClick: function(evt) {
@@ -280,12 +255,36 @@ var EditPanel = React.createClass({
             },
         });
 
+        this.state.dirty = true;
         this.state.focusText = {
             index: this.state.translation.texts.length - 1,
             which: 'overlay',
         };
 
         this.setState(this.state);
+    },
+    handleSave: function() {
+        var me = this;
+
+        me.state.saving = true;
+        me.setState(me.state);
+
+        $.post('/api/translation/save', {
+            translationId: this.state.translation._id,
+            title: this.state.translation.title,
+            texts: this.state.translation.texts,
+        }, function(result) {
+            me.state.dirty = !result.success;
+            me.state.saving = false;
+            me.setState(me.state);
+        }, 'json');
+    },
+    handlePublish: function() {
+        $.post('/api/translation/publish', {
+            translationId: this.state.translation._id,
+        }, function(result) {
+            window.location = '/posts/';
+        }, 'json');
     },
     makeBlurOverlayStyle: function(text) {
         var overlay = text.overlay;
@@ -633,7 +632,7 @@ var EditPanel = React.createClass({
                                         name='texture'
                                         value="blur"
                                         checked={text.overlay.texture == 'blur'}
-                                        onChange={this.handleOverlayTextureChange} />
+                                        onChange={this.handleTextPropertyChange.bind(this, 'overlay', 'texture')} />
                                 <span>模糊</span>
                             </label>
                         </div>
@@ -643,7 +642,7 @@ var EditPanel = React.createClass({
                                         name='texture'
                                         value="block"
                                         checked={text.overlay.texture == 'block'}
-                                        onChange={this.handleOverlayTextureChange} />
+                                        onChange={this.handleTextPropertyChange.bind(this, 'overlay', 'texture')} />
                                 <span>色塊</span>
                             </label>
                         </div>
@@ -653,22 +652,22 @@ var EditPanel = React.createClass({
                     <input type="text" className="form-control"
                             disabled={text.overlay.texture != 'block'}
                             value={text.overlay.fillColor}
-                            onChange={this.handleFillColorChange} />
+                            onChange={this.handleTextPropertyChange.bind(this, 'overlay', 'fillColor')} />
 
                     <label>文字顏色</label>
                     <input type="text" className="form-control"
                             value={text.content.textColor}
-                            onChange={this.handleTextColorChange} />
+                            onChange={this.handleTextPropertyChange.bind(this, 'content', 'textColor')} />
 
                     <label>文字陰影顏色</label>
                     <input type="text" className="form-control"
                             value={text.content.textShadowColor}
-                            onChange={this.handleTextShadowColorChange} />
+                            onChange={this.handleTextPropertyChange.bind(this, 'content', 'textShadowColor')} />
 
                     <label>文字大小</label>
                     <input type="text" className="form-control"
                             value={text.content.fontSize}
-                            onChange={this.handleFontSizeChange} />
+                            onChange={this.handleTextPropertyChange.bind(this, 'content', 'fontSize')} />
 
                 </p>
 
@@ -678,11 +677,26 @@ var EditPanel = React.createClass({
             </div>
         );
     },
-    createAddTextButton: function() {
+    createActionButtons: function() {
+        var addTextButton = <button className="btn btn-primary" onClick={this.handleAddTextButtonClick}>加一行新的</button>;
+        var publishButton = <button className="btn btn-success" onClick={this.handlePublish}>完成且發佈</button>;
+
+        if (this.state.saving) {
+            var saveButton = <button className="btn btn-success" disabled="true">儲存中</button>;
+        } else if (this.state.dirty) {
+            var saveButton = <button className="btn btn-success" onClick={this.handleSave}>儲存草稿</button>;
+        } else {
+            var saveButton = <button className="btn btn-success" disabled="true">儲存草稿</button>;
+        }
+
         return (
             <div>
                 <p>
-                    <button className="btn btn-primary" onClick={this.handleAddTextButtonClick}>加一行新的</button>
+                    {addTextButton}
+                    <div className="btn-group pull-right" role="group">
+                        {saveButton}
+                        {publishButton}
+                    </div>
                 </p>
                 <hr></hr>
             </div>
@@ -698,14 +712,14 @@ var EditPanel = React.createClass({
                             value={text.content.words}
                             style={{background: me.isTextFocused(idx) ? '#dbedf9' : 'white'}}
                             onFocus={me.handleTextInputFocus.bind(me, idx)}
-                            onChange={me.handleWordsChange.bind(me, idx)} />
+                            onChange={me.handleTextPropertyChange.bind(me, 'content', 'words')} />
                     <hr></hr>
                 </div>
             );
         });
     },
     createRightPanel: function() {
-        var addTextButton = this.createAddTextButton();
+        var addTextButton = this.createActionButtons();
         var textInputList = this.createTextInputList();
         var textEditArea = this.createTextDetailArea();
 
@@ -722,6 +736,8 @@ var EditPanel = React.createClass({
             translation: null,
             focusText: null,
             rectModifyStatus: null,
+            dirty: false,
+            saving: false,
         };
     },
     componentDidMount: function() {
