@@ -55,7 +55,7 @@ var TranslationText = React.createClass({
     makeBlockOverlayInnerStyle: function() {
         var overlay = this.props.text.overlay;
         return {
-            fill: '#f0f0f0',
+            fill: overlay.fillColor,
         };
     },
     makeContentStyle: function() {
