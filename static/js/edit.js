@@ -282,6 +282,8 @@ var EditPanel = React.createClass({
     handlePublish: function() {
         $.post('/api/translation/publish', {
             translationId: this.state.translation._id,
+            title: this.state.translation.title,
+            texts: this.state.translation.texts,
         }, function(result) {
             window.location = '/posts/';
         }, 'json');
