@@ -29,17 +29,21 @@ var Translation = React.createClass({
         });
 
         return (
-            <div>
+            <div className="ct-post">
                 <div><h2>{this.props.translation.title}</h2></div>
                 <div className="ct-image">
                     <img src={this.props.translation.original.imageUrl}></img>
                     {textNodes}
                 </div>
                 <div>
-                    <div className="btn-group" role="group">
+                    <span className="btn-group" role="group">
                         <a href={this.props.translation.original.pageUrl} target="_blank" className="btn btn-default">出處</a>
                         <a href={editUrl} className="btn btn-default">修正</a>
-                    </div>
+                    </span>
+                    <span className="pull-right">
+                        <img className="ct-avatar" src={this.props.translation.author.avatarUrl}></img>
+                        <span>{this.props.translation.author.displayName}</span>
+                    </span>
                 </div>
                 <hr></hr>
             </div>
